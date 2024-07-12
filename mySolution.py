@@ -3,6 +3,7 @@ from itertools import permutations
 import math
 from typing import Any
 import argparse
+from functools import lru_cache
 
 
 class Point:
@@ -25,6 +26,7 @@ class Point:
         return distance_between_points(self, other)
 
 
+@lru_cache(None)
 def distance_between_points(p1: Point, p2: Point) -> float:
     xDiff = p1.x - p2.x
     yDiff = p1.y - p2.y
@@ -38,16 +40,18 @@ class Load:
         self.dropoff = dropoff
 
     def __str__(self):
-        return "Load({} {} {})".format(self.id, self.pickup, self.dropoff)
+        return f"Load({self.id} {self.pickup} {self.dropoff})"
 
     def __repr__(self) -> str:
-        return self.__str__()
+        return f"Load({self.id} {self.pickup} {self.dropoff})"
 
 
 class Route:
     def __init__(self, loads: list[Load]):
         self.loads = loads
+        self.time = self.calculate_time()
 
+    def calculate_time(self) -> float:
         pos = DEPOT
         t = 0
         for l in self.loads:
@@ -55,22 +59,24 @@ class Route:
             t += l.pickup.distance(l.dropoff)
             pos = l.dropoff
         t += pos.distance(DEPOT)
+        return t
 
-        self.time: float = t
-        self.is_valid: bool = self.time < MAX_TIME
+    @property
+    def is_valid(self) -> bool:
+        return self.time < MAX_TIME
 
     def __str__(self) -> str:
-        return "[{}]".format(",".join([str(l.id) for l in self.loads]))
+        return f"[{','.join([str(l.id) for l in self.loads])}]"
 
     def __repr__(self) -> str:
-        return "Route({})".format(",".join([str(l.id) for l in self.loads]))
+        return f"Route({','.join([str(l.id) for l in self.loads])})"
 
 
 class Solution:
     def __init__(self, routes: list[Route]):
         self.routes = routes
-        self.is_valid: bool = all([r.is_valid for r in self.routes])
-        self.cost: float = (DRIVER_COST * self.num_drivers) + sum(
+        self.is_valid: bool = all(r.is_valid for r in self.routes)
+        self.cost: float = DRIVER_COST * self.num_drivers + sum(
             r.time for r in self.routes
         )
 
@@ -106,6 +112,7 @@ def all_splits(lst):
             result.append([left] + r)
     return result
 
+
 def permute_loads(L):
     all_permutations = permutations(L)
     all_sublists = set()
@@ -114,7 +121,7 @@ def permute_loads(L):
         splits = all_splits(list(perm))
         for split in splits:
             all_sublists.add(tuple(map(tuple, split)))
-    
+
     return [list(map(Route, sublist)) for sublist in all_sublists]
 
 
@@ -124,8 +131,6 @@ DEPOT = Point(0, 0)
 
 
 def solve(filename: str) -> Solution:
-    # print(args.problemFile)
-    # print(read_file(args.problemFile))
     loads = [
         Load(
             int(l["loadNumber"]),
@@ -134,12 +139,10 @@ def solve(filename: str) -> Solution:
         )
         for l in read_file(filename)
     ]
-    # print(loads)
 
     sl = permute_loads(loads)
     solutions = [s for s in map(Solution, sl) if s.is_valid]
     solutions = sorted(solutions, key=lambda s: s.cost, reverse=False)
-    print(solutions)
     return solutions[0]
 
 
@@ -148,4 +151,4 @@ if __name__ == "__main__":
     parser.add_argument("--problemFile", help="File to process")
     args = parser.parse_args()
     solution = solve(args.problemFile)
-    print(solution, solution.cost, solution.is_valid, solution[-1].time)
+    print(solution)
