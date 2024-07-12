@@ -94,27 +94,28 @@ def read_file(path: str) -> list[dict[str, Any]]:
         return list(reader)
 
 
+def all_splits(lst):
+    if len(lst) == 1:
+        return [[lst]]
+    result = []
+    for i in range(1, len(lst)):
+        left = lst[:i]
+        right = lst[i:]
+        result.append([left, right])
+        for r in all_splits(right):
+            result.append([left] + r)
+    return result
+
 def permute_loads(L):
-    # TODO: Get this to change route order as well
-    def split(L):
-        if not L:
-            return [[]]
-        result = []
-        for i in range(1, len(L) + 1):
-            first, rest = L[:i], L[i:]
-            for sub in split(rest):
-                result.append([first] + sub)
-        return result
+    all_permutations = permutations(L)
+    all_sublists = set()
 
-    sublists = split(L)
-    all_permutations = []
-
-    for sublist in sublists:
-        all_permutations.extend(permutations(sublist))
-
-    all_permutations = [list(map(Route, perm)) for perm in all_permutations]
-
-    return all_permutations
+    for perm in all_permutations:
+        splits = all_splits(list(perm))
+        for split in splits:
+            all_sublists.add(tuple(map(tuple, split)))
+    
+    return [list(map(Route, sublist)) for sublist in all_sublists]
 
 
 DRIVER_COST = 500
