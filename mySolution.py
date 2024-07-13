@@ -1,6 +1,6 @@
 import csv
 import math
-from typing import Any, List, Dict, Set
+from typing import Any, List, Dict
 import argparse
 
 
@@ -102,10 +102,6 @@ def read_file(path: str) -> List[Dict[str, Any]]:
         return list(reader)
 
 
-def find_nearest_load(remaining_loads: Set[Load], current_pos: Point) -> Load:
-    return min(remaining_loads, key=lambda l: current_pos.distance(l.pickup))
-
-
 def nearest_neighbor_multiple_salesmen(loads: List[Load]) -> List[Route]:
     # All unique loads
     remaining_loads = set(loads)
@@ -117,7 +113,7 @@ def nearest_neighbor_multiple_salesmen(loads: List[Load]) -> List[Route]:
         route_loads: List[Load] = []
         while remaining_loads:
             # Get nearest neighbor
-            next_load = find_nearest_load(remaining_loads, current_pos)
+            next_load = min(remaining_loads, key=lambda l: current_pos.distance(l.pickup))
             # Check if route can be made without exceeding time
             if Route(route_loads + [next_load]).calculate_time() <= MAX_TIME:
                 route_loads.append(next_load)
