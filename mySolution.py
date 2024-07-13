@@ -1,9 +1,7 @@
 import csv
-from itertools import permutations
 import math
-from typing import Any, List, Dict
+from typing import Any, List, Dict, Set
 import argparse
-from functools import lru_cache
 
 
 class Point:
@@ -26,7 +24,6 @@ class Point:
         return distance_between_points(self, other)
 
 
-@lru_cache(None)
 def distance_between_points(p1: Point, p2: Point) -> float:
     xd = p1.x - p2.x
     yd = p1.y - p2.y
@@ -45,6 +42,9 @@ class Load:
     def __repr__(self) -> str:
         return f"Load({self.id} {self.pickup} {self.dropoff})"
 
+    def __hash__(self) -> int:
+        return hash(self.id)
+
 
 class Route:
     def __init__(self, loads: List[Load]):
@@ -52,6 +52,7 @@ class Route:
         self.time = self.calculate_time()
 
     def calculate_time(self) -> float:
+        """Calculate route time, including return to DEPOT trip"""
         pos = DEPOT
         t = 0
         for l in self.loads:
@@ -101,29 +102,35 @@ def read_file(path: str) -> List[Dict[str, Any]]:
         return list(reader)
 
 
-def all_splits(lst):
-    if len(lst) == 1:
-        return [[lst]]
-    result = []
-    for i in range(1, len(lst)):
-        left = lst[:i]
-        right = lst[i:]
-        result.append([left, right])
-        for r in all_splits(right):
-            result.append([left] + r)
-    return result
+def find_nearest_load(remaining_loads: Set[Load], current_pos: Point) -> Load:
+    return min(remaining_loads, key=lambda l: current_pos.distance(l.pickup))
 
 
-def permute_loads(L):
-    all_permutations = permutations(L)
-    all_sublists = set()
+def nearest_neighbor_multiple_salesmen(loads: List[Load]) -> List[Route]:
+    # All unique loads
+    remaining_loads = set(loads)
+    routes: List[Route] = []
 
-    for perm in all_permutations:
-        splits = all_splits(list(perm))
-        for split in splits:
-            all_sublists.add(tuple(map(tuple, split)))
-
-    return [list(map(Route, sublist)) for sublist in all_sublists]
+    while remaining_loads:
+        # New Driver/Route
+        current_pos = DEPOT
+        route_loads: List[Load] = []
+        while remaining_loads:
+            # Get nearest neighbor
+            next_load = find_nearest_load(remaining_loads, current_pos)
+            # Check if route can be made without exceeding time
+            if Route(route_loads + [next_load]).calculate_time() <= MAX_TIME:
+                route_loads.append(next_load)
+                current_pos = next_load.dropoff
+                remaining_loads.remove(next_load)
+            else:
+                break
+        if route_loads:
+            routes.append(Route(route_loads))
+        else:
+            break
+    
+    return routes
 
 
 DRIVER_COST = 500
@@ -141,15 +148,14 @@ def solve(filename: str) -> Solution:
         for l in read_file(filename)
     ]
 
-    return min(
-        [s for s in map(Solution, permute_loads(loads)) if s.is_valid],
-        key=lambda s: s.cost,
-    )
+    routes = nearest_neighbor_multiple_salesmen(loads)
+    solution = Solution(routes)
+    return solution
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--problemFile", help="File to process")
+    parser.add_argument("problemFile", help="File to process")
     args = parser.parse_args()
     solution = solve(args.problemFile)
     print(solution)
