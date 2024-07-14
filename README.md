@@ -58,5 +58,7 @@ This should only be an issue on Windows.
 - https://www.geeksforgeeks.org/traveling-salesman-problem-tsp-in-python/
 - https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/mTSP_en.ipynb
 - https://github.com/afourmy/pyTSP
+- https://medium.com/@suryabhagavanchakkapalli/solving-the-traveling-salesman-problem-in-python-using-the-nearest-neighbor-algorithm-48fcf8db289a
 - https://stackoverflow.com/questions/53275314/2-opt-algorithm-to-solve-the-travelling-salesman-problem-in-python
 - https://arthur.maheo.net/python-local-tsp-heuristics/
+- https://github.com/norvig/pytudes/blob/main/ipynb/TSP.ipynb

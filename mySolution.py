@@ -1,4 +1,5 @@
 import csv
+from functools import cache
 import math
 from typing import Any, List, Dict
 import argparse
@@ -24,6 +25,7 @@ class Point:
         return distance_between_points(self, other)
 
 
+@cache
 def distance_between_points(p1: Point, p2: Point) -> float:
     xd = p1.x - p2.x
     yd = p1.y - p2.y
@@ -113,7 +115,9 @@ def nearest_neighbor_multiple_salesmen(loads: List[Load]) -> List[Route]:
         route_loads: List[Load] = []
         while remaining_loads:
             # Get nearest neighbor
-            next_load = min(remaining_loads, key=lambda l: current_pos.distance(l.pickup))
+            next_load = min(
+                remaining_loads, key=lambda l: current_pos.distance(l.pickup)
+            )
             # Check if route can be made without exceeding time
             if Route(route_loads + [next_load]).calculate_time() <= MAX_TIME:
                 route_loads.append(next_load)
@@ -125,7 +129,7 @@ def nearest_neighbor_multiple_salesmen(loads: List[Load]) -> List[Route]:
             routes.append(Route(route_loads))
         else:
             break
-    
+
     return routes
 
 
