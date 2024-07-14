@@ -51,3 +51,10 @@ def loadSolutionFromString(solutionStr):
 ```
 
 This should only be an issue on Windows.
+
+## Sources Used
+
+- https://www.geeksforgeeks.org/traveling-salesman-problem-tsp-implementation/
+- https://www.geeksforgeeks.org/traveling-salesman-problem-tsp-in-python/
+- https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/mTSP_en.ipynb
+- https://github.com/afourmy/pyTSP
